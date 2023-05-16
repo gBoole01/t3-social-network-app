@@ -1,5 +1,23 @@
 import { type NextPage } from "next";
+import InfinitePostList from "~/components/InfinitePostList";
 import NewPostForm from "~/components/NewPostForm";
+import { api } from "~/utils/api";
+
+const RecentPosts = () => {
+  const posts = api.post.infiniteFeed.useInfiniteQuery(
+    {},
+    { getNextPageParam: (lastPage) => lastPage.nextCursor }
+  );
+  return (
+    <InfinitePostList
+      posts={posts.data?.pages.flatMap((page) => page.posts)}
+      isError={posts.isError}
+      isLoading={posts.isLoading}
+      hasMore={posts.hasNextPage ? true : false}
+      fetchNewPosts={posts.fetchNextPage}
+    />
+  );
+};
 
 const Home: NextPage = () => {
   return (
@@ -8,6 +26,7 @@ const Home: NextPage = () => {
         <h1 className="mb-2 px-4 text-lg font-bold">Home</h1>
       </header>
       <NewPostForm />
+      <RecentPosts />
     </>
   );
 };

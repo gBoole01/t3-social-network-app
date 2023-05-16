@@ -54,14 +54,7 @@ const InfinitePostList = ({
   );
 };
 
-const PostCard = ({
-  id,
-  user,
-  content,
-  createdAt,
-  likeCount,
-  likedByMe,
-}: Post) => {
+const PostCard = ({ user, content, createdAt, likeCount, likedByMe }: Post) => {
   return (
     <li className="flex gap-4 border-b px-4 py-4">
       <Link href={`/profiles/${user.id}`}>
