@@ -24,12 +24,40 @@ const Form = () => {
     updateTextAreaSize(textAreaRef.current);
   }, [inputValue]);
 
+  const trpcUtils = api.useContext();
   const createPost = api.post.create.useMutation({
-    onSuccess: () => {
+    onSuccess: (newPost) => {
       setInputValue("");
+
+      if (status !== "authenticated") return;
+
+      trpcUtils.post.infiniteFeed.setInfiniteData({}, (oldData) => {
+        if (oldData == null || oldData.pages[0] == null) return;
+
+        const newCachePost = {
+          ...newPost,
+          likeCount: 0,
+          likedByMe: false,
+          user: {
+            id: session.user.id,
+            name: session.user.name || null,
+            image: session.user.image || null,
+          },
+        };
+
+        return {
+          ...oldData,
+          pages: [
+            {
+              ...oldData.pages[0],
+              posts: [newCachePost, ...oldData.pages[0].posts],
+            },
+            ...oldData.pages.slice(1),
+          ],
+        };
+      });
     },
   });
-
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
 

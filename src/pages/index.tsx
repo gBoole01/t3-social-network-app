@@ -13,7 +13,7 @@ const RecentPosts = () => {
       posts={posts.data?.pages.flatMap((page) => page.posts)}
       isError={posts.isError}
       isLoading={posts.isLoading}
-      hasMore={posts.hasNextPage ? true : false}
+      hasMore={posts.hasNextPage || false}
       fetchNewPosts={posts.fetchNextPage}
     />
   );
