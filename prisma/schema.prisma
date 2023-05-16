@@ -11,7 +11,7 @@ datasource db {
   relationMode = "prisma"
 }
 
-model Tweet {
+model Post {
   id        String   @id @default(uuid())
   userId    String
   content   String
@@ -20,19 +20,20 @@ model Tweet {
   user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   likes Like[]
 
+  @@unique([createdAt, id])
   @@index([userId])
 }
 
 model Like {
-  userId  String
-  tweetId String
+  userId String
+  postId String
 
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tweet Tweet @relation(fields: [tweetId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
 
-  @@id([userId, tweetId])
+  @@id([userId, postId])
   @@index([userId])
-  @@index([tweetId])
+  @@index([postId])
 }
 
 // Necessary for Next auth
@@ -75,10 +76,10 @@ model User {
   sessions      Session[]
 
   // Custom fields
-  tweets    Tweet[]
+  posts     Post[]
   likes     Like[]
-  followers User[]  @relation(name: "Followers")
-  following User[]  @relation(name: "Followers")
+  followers User[] @relation(name: "Followers")
+  following User[] @relation(name: "Followers")
 }
 
 model VerificationToken {
