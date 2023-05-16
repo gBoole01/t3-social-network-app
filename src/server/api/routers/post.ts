@@ -70,4 +70,20 @@ export const postRouter = createTRPCRouter({
 
       return post;
     }),
+  toggleLike: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input: { id }, ctx }) => {
+      const data = { userId: ctx.session.user.id, postId: id };
+      const existingLike = await ctx.prisma.like.findUnique({
+        where: { userId_postId: data },
+      });
+
+      if (existingLike == null) {
+        await ctx.prisma.like.create({ data });
+        return { addedLike: true };
+      } else {
+        await ctx.prisma.like.delete({ where: { userId_postId: data } });
+        return { addedLike: false };
+      }
+    }),
 });
