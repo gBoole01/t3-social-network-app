@@ -5,6 +5,7 @@ import ProfileImage from "./ProfileImage";
 import { useSession } from "next-auth/react";
 import IconHoverEffect from "./IconHoverEffect";
 import { api } from "~/utils/api";
+import LoadingSpinner from "./LoadingSpinner";
 
 type Post = {
   id: string;
@@ -30,7 +31,7 @@ const InfinitePostList = ({
   hasMore,
   fetchNewPosts,
 }: InfinitePostListProps) => {
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <LoadingSpinner />;
   if (isError) return <div>Error</div>;
 
   if (posts == null || posts.length === 0) {
@@ -45,7 +46,7 @@ const InfinitePostList = ({
         dataLength={posts.length}
         next={fetchNewPosts}
         hasMore={hasMore}
-        loader={<h4>Loading...</h4>}
+        loader={<LoadingSpinner />}
       >
         {posts.map((post) => (
           <PostCard key={post.id} {...post} />
