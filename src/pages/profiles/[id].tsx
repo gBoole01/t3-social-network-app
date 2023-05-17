@@ -13,6 +13,8 @@ import { ssgHelper } from "~/server/api/ssgHelper";
 import IconHoverEffect from "~/components/IconHoverEffect";
 import ProfileImage from "~/components/ProfileImage";
 import InfinitePostList from "~/components/InfinitePostList";
+import Button from "~/components/Button";
+import { useSession } from "next-auth/react";
 
 const ProfilePage: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
   id,
@@ -22,6 +24,23 @@ const ProfilePage: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
     { userId: id },
     { getNextPageParam: (lastPage) => lastPage.nextCursor }
   );
+
+  const trpcUtils = api.useContext();
+  const toggleFollow = api.profile.toggleFollow.useMutation({
+    onSuccess: ({ addedFollow }) => {
+      trpcUtils.profile.getById.setData({ id }, (oldData) => {
+        if (oldData == null) return;
+
+        const countModifier = addedFollow ? 1 : -1;
+
+        return {
+          ...oldData,
+          isFollowing: addedFollow,
+          followersCount: oldData.followersCount + countModifier,
+        };
+      });
+    },
+  });
 
   if (profile == null || profile.name == null) {
     return <ErrorPage statusCode={404} />;
@@ -50,9 +69,10 @@ const ProfilePage: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
           </div>
         </div>
         <FollowButton
-          isFollowing={profile.isFollowing}
           userId={id}
-          onClick={() => null}
+          isLoading={toggleFollow.isLoading}
+          isFollowing={profile.isFollowing}
+          onClick={() => toggleFollow.mutate({ userId: id })}
         />
       </header>
       <main>
@@ -70,12 +90,26 @@ const ProfilePage: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
 
 type FollowButtonProps = {
   isFollowing: boolean;
+  isLoading: boolean;
   userId: string;
   onClick: () => void;
 };
 
-const FollowButton = ({ isFollowing, userId, onClick }: FollowButtonProps) => {
-  return <h1>Follow</h1>;
+const FollowButton = ({
+  isFollowing,
+  isLoading,
+  userId,
+  onClick,
+}: FollowButtonProps) => {
+  const { data: session, status } = useSession();
+  if (status !== "authenticated" || session?.user?.id === userId) {
+    return null;
+  }
+  return (
+    <Button onClick={onClick} disabled={isLoading} small gray={isFollowing}>
+      {isFollowing ? "Unfollow" : "Follow"}
+    </Button>
+  );
 };
 
 const pluralRules = new Intl.PluralRules();
